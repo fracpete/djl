@@ -1,6 +1,7 @@
 plugins {
     ai.djl.javaProject
     ai.djl.publish
+    `maven-publish`
 }
 
 dependencies {
@@ -42,5 +43,11 @@ tasks {
                         "https://docs.djl.ai/master/docs/telemetry.html for more information."
             )
         }
+    }
+}
+
+publishing {
+    repositories {
+        mavenLocal()
     }
 }
