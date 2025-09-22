@@ -59,7 +59,7 @@ public abstract class Engine {
 
     private static final Map<String, EngineProvider> ALL_ENGINES = new ConcurrentHashMap<>();
 
-    private static final String DEFAULT_ENGINE = initEngine();
+    private static String globalDefaultEngine = initEngine();
     private static final Pattern PATTERN =
             Pattern.compile("KEY|TOKEN|PASSWORD", Pattern.CASE_INSENSITIVE);
 
@@ -68,8 +68,22 @@ public abstract class Engine {
     // use object to check if it's set
     private Integer seed;
 
+    /**
+     * Reinitializes the engines using the specified classloader context.
+     *
+     * @param loader the classloader context to use
+     */
+    public static synchronized void reInitEngine(ClassLoader loader) {
+        ALL_ENGINES.clear();
+        globalDefaultEngine = initEngine(loader);
+    }
+
     private static synchronized String initEngine() {
-        ServiceLoader<EngineProvider> loaders = ServiceLoader.load(EngineProvider.class);
+        return initEngine(Thread.currentThread().getContextClassLoader());
+    }
+
+    private static synchronized String initEngine(ClassLoader loader) {
+        ServiceLoader<EngineProvider> loaders = ServiceLoader.load(EngineProvider.class, loader);
         for (EngineProvider provider : loaders) {
             registerEngine(provider);
         }
@@ -129,7 +143,7 @@ public abstract class Engine {
      * @return the default Engine name
      */
     public static String getDefaultEngineName() {
-        return System.getProperty("ai.djl.default_engine", DEFAULT_ENGINE);
+        return System.getProperty("ai.djl.default_engine", globalDefaultEngine);
     }
 
     /**
@@ -139,7 +153,7 @@ public abstract class Engine {
      * @see EngineProvider
      */
     public static Engine getInstance() {
-        if (DEFAULT_ENGINE == null) {
+        if (globalDefaultEngine == null) {
             throw new EngineException(
                     "No deep learning engine found."
                             + System.lineSeparator()
