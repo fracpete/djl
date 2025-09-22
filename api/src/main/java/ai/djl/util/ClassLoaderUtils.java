@@ -42,6 +42,8 @@ public final class ClassLoaderUtils {
 
     private static final Logger logger = LoggerFactory.getLogger(ClassLoaderUtils.class);
 
+    private static ClassLoader contextClassLoader;
+
     private ClassLoaderUtils() {}
 
     /**
@@ -170,11 +172,23 @@ public final class ClassLoaderUtils {
     }
 
     /**
+     * Sets the context class loader to use.
+     *
+     * @param loader the context class loader
+     */
+    public static void setContextClassLoader(ClassLoader loader) {
+        contextClassLoader = loader;
+    }
+
+    /**
      * Returns the context class loader if available.
      *
      * @return the context class loader if available
      */
     public static ClassLoader getContextClassLoader() {
+        if (contextClassLoader != null) {
+            return contextClassLoader;
+        }
         ClassLoader cl = Thread.currentThread().getContextClassLoader();
         if (cl == null) {
             return ClassLoaderUtils.class.getClassLoader(); // NOPMD
